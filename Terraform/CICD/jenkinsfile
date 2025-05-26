@@ -1,6 +1,6 @@
 pipeline {
-
     parameters {
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Terraform action')
         booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
     } 
     environment {
@@ -8,48 +8,58 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
-   agent  any
+    agent any
+
     stages {
         stage('checkout') {
             steps {
-                 script{
-                        dir("terraform")
-                        {
-                            git branch: 'main',
+                script {
+                    dir("terraform") {
+                        git branch: 'main',
                             url: 'https://github.com/priyaraghunath/project_codepipeline_practice.git'
-                        }
                     }
                 }
             }
+        }
 
         stage('Plan') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
             steps {
                 bat 'cd terraform && terraform init'
                 bat 'cd terraform && terraform plan -out tfplan'
                 bat 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
             }
         }
-        stage('Approval') {
-           when {
-               not {
-                   equals expected: true, actual: params.autoApprove
-               }
-           }
 
-           steps {
-               script {
+        stage('Approval') {
+            when {
+                allOf {
+                    not { equals expected: true, actual: params.autoApprove }
+                    expression { params.ACTION == 'apply' }
+                }
+            }
+            steps {
+                script {
                     def plan = readFile 'terraform/tfplan.txt'
                     input message: "Do you want to apply the plan?",
-                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-               }
-           }
-       }
+                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                }
+            }
+        }
 
-        stage('Apply') {
+        stage('Apply or Destroy') {
             steps {
-                bat 'cd terraform && terraform apply -input=false tfplan'
+                script {
+                    if (params.ACTION == 'destroy') {
+                        bat 'cd terraform && terraform init'
+                        bat 'cd terraform && terraform destroy -auto-approve'
+                    } else {
+                        bat 'cd terraform && terraform apply -input=false tfplan'
+                    }
+                }
             }
         }
     }
-
-  }
+}
