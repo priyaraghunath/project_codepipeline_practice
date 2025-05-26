@@ -254,5 +254,14 @@ depends_on              = [aws_db_instance.multi-dr-rds-region1]
   
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "bucketforlogstrore-bootcampproject"
+    key            = "state/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "Terraform-Logstore"
+  }
+}
 
 
