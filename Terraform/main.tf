@@ -1,15 +1,3 @@
-// main.tf (final integrated version)
-
-provider "aws" {
-  alias  = "region1"
-  region = var.region1
-}
-
-provider "aws" {
-  alias  = "region2"
-  region = var.region2
-}
-
 # ------------------------ SECURITY GROUPS ------------------------
 resource "aws_security_group" "multi-dr-sg-region1" {
   provider    = aws.region1
@@ -20,6 +8,13 @@ resource "aws_security_group" "multi-dr-sg-region1" {
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+ ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -48,6 +43,13 @@ resource "aws_security_group" "multi-dr-sg-region2" {
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+   ingress {
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
