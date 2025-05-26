@@ -15,7 +15,8 @@ pipeline {
                  script{
                         dir("terraform")
                         {
-                            git "https://github.com/priyaraghunath/project_codepipeline_practice.git"
+                            git branch: 'main',
+                            url: 'https://github.com/priyaraghunath/project_codepipeline_practice.git'
                         }
                     }
                 }
