@@ -72,3 +72,8 @@ variable "db_username" {
 variable "db_password" {
   default = "password1234"
 }
+
+variable "route53_zone_id" {
+  description = "The hosted zone ID for priyaraghunath.site"
+  type        = string
+}
